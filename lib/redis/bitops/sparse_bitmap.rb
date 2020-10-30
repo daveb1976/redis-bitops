@@ -58,12 +58,12 @@ class Redis
 
       def sync_chunk_keys
         @redis.keys("#{@root_key}:chunk:*").each do |key|
-          @redis.srem chunk_key_index, key  unless @redis.exists key
+          @redis.srem chunk_key_index, key  unless @redis.exists? key
         end
       end
 
       def chunk_key(i)
-        key = "#{@root_key}:chunk:#{i}"
+        key = "#{@root_key}:chunk:{#{i}}"
         @redis.sadd chunk_key_index, key
         key
       end
@@ -102,14 +102,14 @@ class Redis
       protected
 
       def track_chunks
-        @redis.keys("#{@root_key}:chunk:*").each do |key|
+        @redis.keys("#{@root_key}:chunk:{*").each do |key|
            @redis.sadd chunk_key_index, key
         end
         @redis.set "#{@root_key}:tracking_chunks", true
       end
 
       def tracking_chunks?
-        @redis.exists "#{@root_key}:tracking_chunks"
+        @redis.exists? "#{@root_key}:tracking_chunks"
       end
 
       def bits_per_chunk
@@ -129,11 +129,11 @@ class Redis
       end
 
       def chunk_numbers(keys)
-        keys.map { |key| key.split(":").last.to_i }
+        keys.map { |key| key.split(":").last[/\d+/].to_i }
       end
 
       def chunk_key_index
-        "#{@root_key}:chunk_keys"
+        "#{@root_key}:{chunk_keys}"
       end
 
       # Maybe pipeline/make atomic based on the configuration.
