@@ -28,18 +28,27 @@ describe Redis::Bitops::SparseBitmap, redis_cleanup: true, redis_key_prefix: "rs
     describe "#[]" do
       it "handles bits arround chunk boundaries" do
         a.chunk_keys.should have(3).items
-        set_bits = 
+        set_bits =
           (0..(3 * bits_per_chunk)).inject([]) { |acc, i|
             acc << i if a[i]
             acc
           }
         set_bits.should match_array([
-          0, 
-          bits_per_chunk - 1, 
-          bits_per_chunk, 
+          0,
+          bits_per_chunk - 1,
+          bits_per_chunk,
           2 * bits_per_chunk - 1,
           2 * bits_per_chunk])
       end
+
+      context 'cluster support' do
+        let(:nodes) { (7000..7005).map { |port| "redis://127.0.0.1:#{port}" } }
+        let(:redis) { Redis.new(cluster: nodes)}
+        it 'is cluster compatible' do
+          a.chunk_keys
+        end
+      end
+
     end
 
     describe "#bitcount" do
