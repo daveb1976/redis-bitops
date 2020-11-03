@@ -26,19 +26,19 @@ class Redis
       # Reads bit at position 'pos' returning a boolean.
       #
       def [] (pos)
-        i2b(@redis.getbit(key(pos), offset(pos)))
+        i2b(@redis.call("R.GETBIT", key(pos), offset(pos)))
       end
 
       # Sets bit at position 'pos' to 1 or 0 based on the boolean 'b'.
       #
       def []= (pos, b)
-        @redis.setbit(key(pos), offset(pos), b2i(b))
+        @redis.call("R.SETBIT", key(pos), offset(pos), b2i(b))
       end
 
       # Returns the number of set bits.
       #
       def bitcount
-        @redis.bitcount(@root_key)
+        @redis.call("R.BITCOUNT", @root_key)
       end
 
       # Deletes the bitmap and all its keys.

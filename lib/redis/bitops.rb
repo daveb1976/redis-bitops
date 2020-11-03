@@ -11,7 +11,7 @@ require 'redis/bitops/configuration'
 
 
 class Redis
-  
+
   # Creates a new bitmap.
   #
   def bitmap(key)
@@ -22,5 +22,11 @@ class Redis
   #
   def sparse_bitmap(key, bytes_per_chunk = nil)
     Bitops::SparseBitmap.new(key, self, bytes_per_chunk)
+  end
+
+  def bitop(operation, destkey, *keys)
+    synchronize do |client|
+      client.call([:"R.BITOP", operation.to_s.upcase, destkey, *keys])
+    end
   end
 end

@@ -10,7 +10,6 @@ class Redis
     class SparseBitmap < Bitmap
 
       # Creates a new sparse bitmap stored in 'redis' under 'root_key'.
-      #
       def initialize(root_key, redis, bytes_per_chunk = nil)
         @bytes_per_chunk = bytes_per_chunk || Redis::Bitops.configuration.default_bytes_per_chunk
         super(root_key, redis)
@@ -19,7 +18,7 @@ class Redis
       # Returns the number of set bits.
       #
       def bitcount
-        chunk_keys.map { |key| @redis.bitcount(key) }.reduce(:+) || 0
+        chunk_keys.map { |key| @redis.call("R.BITCOUNT", key) }.reduce(:+) || 0
       end
 
       # Deletes the bitmap and all its keys.
@@ -42,7 +41,6 @@ class Redis
 
         all_keys = self.chunk_keys + (operands.map(&:chunk_keys).flatten! || [])
         unique_chunk_numbers = Set.new(chunk_numbers(all_keys))
-        binding.pry
         begin
           @redis.pipelined do
             unique_chunk_numbers.each do |i|
@@ -50,7 +48,6 @@ class Redis
             end
           end
         rescue => exception
-          binding.pry
           unique_chunk_numbers.each do |i|
             @redis.bitop(op, result.chunk_key(i), self.chunk_key(i), *operands.map { |o| o.chunk_key(i) })
           end
