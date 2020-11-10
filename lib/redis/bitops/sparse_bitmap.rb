@@ -48,6 +48,7 @@ class Redis
             end
           end
         rescue => exception
+          puts "Handling exception :("
           unique_chunk_numbers.each do |i|
             @redis.bitop(op, result.chunk_key(i), self.chunk_key(i), *operands.map { |o| o.chunk_key(i) })
           end
